@@ -1,12 +1,13 @@
 /*
-Mini ACI report listing command
+Mini ACI repo listing command.
 
-repo path → list of files → important files
+repo path → file list → important files
 
+Responsibilities:
 - recursively scan files
-- ignore node_modules, .git, dist, build, .next, coverage
-- return file paths
-- detect important files ( we provide the initial list of important files )
+- ignore noisy generated folders
+- return relative file paths
+- detect important repo-context files
 */
 
 import { readdir, stat } from "node:fs/promises";
@@ -24,23 +25,36 @@ const IGNORED_DIRS = new Set([
   "out",
 ]);
 
-
 const IMPORTANT_FILE_PATTERNS = [
-  /^package\.json$/,
-  /^README\.md$/i,
-  /^AGENTS\.md$/i,
-  /^CLAUDE\.md$/i,
-  /^tsconfig\.json$/,
-  /^next\.config\.(js|mjs|ts)$/,
-  /^vite\.config\.(js|mjs|ts)$/,
-  /^docker-compose\.(yml|yaml)$/,
-  /^Dockerfile$/,
-  /^prisma\/schema\.prisma$/,
-  /^bun\.lock$/,
-  /^bun\.lockb$/,
-  /^pnpm-lock\.yaml$/,
-  /^yarn\.lock$/,
-  /^package-lock\.json$/,
+  /(^|\/)package\.json$/,
+  /(^|\/)README\.md$/i,
+  /(^|\/)AGENTS\.md$/i,
+  /(^|\/)CLAUDE\.md$/i,
+  /(^|\/)\.github\/copilot-instructions\.md$/,
+
+  /(^|\/)tsconfig\.json$/,
+  /(^|\/)next\.config\.(js|mjs|ts)$/,
+  /(^|\/)vite\.config\.(js|mjs|ts)$/,
+  /(^|\/)turbo\.json$/,
+  /(^|\/)eslint\.config\.(js|mjs|ts)$/,
+  /(^|\/)biome\.json$/,
+
+  /(^|\/)docker-compose\.(yml|yaml)$/,
+  /(^|\/)Dockerfile$/,
+
+  /(^|\/)prisma\/schema\.prisma$/,
+
+  /(^|\/)\.env\.example$/,
+  /(^|\/)bun\.lock$/,
+  /(^|\/)bun\.lockb$/,
+  /(^|\/)pnpm-lock\.yaml$/,
+  /(^|\/)yarn\.lock$/,
+  /(^|\/)package-lock\.json$/,
+
+  /(^|\/)go\.mod$/,
+  /(^|\/)Cargo\.toml$/,
+  /(^|\/)pyproject\.toml$/,
+  /(^|\/)requirements\.txt$/,
 ];
 
 export type RepoScanResult = {
@@ -54,8 +68,12 @@ function shouldIgnoreDir(dirName: string) {
   return IGNORED_DIRS.has(dirName);
 }
 
+function normalizePath(relativePath: string) {
+  return relativePath.split(path.sep).join("/");
+}
+
 function isImportantFile(relativePath: string) {
-  const normalized = relativePath.split(path.sep).join("/");
+  const normalized = normalizePath(relativePath);
   return IMPORTANT_FILE_PATTERNS.some((pattern) => pattern.test(normalized));
 }
 
@@ -76,14 +94,24 @@ async function walkRepo(rootPath: string, currentPath: string, files: string[]) 
     }
 
     if (entry.isFile()) {
-      files.push(relativePath);
+      files.push(normalizePath(relativePath));
     }
   }
 }
 
 export async function scanRepo(repoPath: string): Promise<RepoScanResult> {
   const absoluteRepoPath = path.resolve(repoPath);
-  const repoStat = await stat(absoluteRepoPath);
+
+  let repoStat;
+  try {
+    repoStat = await stat(absoluteRepoPath);
+  } catch {
+    throw new Error(
+      `Repo path does not exist: ${absoluteRepoPath}\n\n` +
+        `Tip: --repo is resolved from your current terminal directory.\n` +
+        `Run "pwd" and "ls .." to verify the correct relative path.`,
+    );
+  }
 
   if (!repoStat.isDirectory()) {
     throw new Error(`Repo path is not a directory: ${absoluteRepoPath}`);

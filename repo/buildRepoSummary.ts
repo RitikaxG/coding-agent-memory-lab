@@ -1,17 +1,26 @@
 import { scanRepo } from "./scanRepo";
-import { detectProject, type PackageManager } from "./detectProject";
+import {
+  detectProject,
+  type PackageManager,
+  type RepoShape,
+} from "./detectProject";
 import { parseAgentInstructions } from "./parseAgentInstructions";
 
 export type RepoSummary = {
   repoPath: string;
   packageManager: PackageManager;
+  repoShape: RepoShape;
+  languageHints: string[];
   frameworkHints: string[];
+  toolingHints: string[];
   scripts: Record<string, string>;
   importantFiles: string[];
   agentInstructionFiles: string[];
+  projectContextFiles: string[];
   agentInstructions?: string;
   fileCount: number;
   packageJsonFiles: string[];
+  workspaceHints: string[];
 };
 
 export async function buildRepoSummary(repoPath: string): Promise<RepoSummary> {
@@ -22,12 +31,17 @@ export async function buildRepoSummary(repoPath: string): Promise<RepoSummary> {
   return {
     repoPath: scan.repoPath,
     packageManager: metadata.packageManager,
+    repoShape: metadata.repoShape,
+    languageHints: metadata.languageHints,
     frameworkHints: metadata.frameworkHints,
+    toolingHints: metadata.toolingHints,
     scripts: metadata.scripts,
     importantFiles: scan.importantFiles,
-    agentInstructionFiles: instructions.files.map((file) => file.filePath),
-    agentInstructions: instructions.combinedInstructions,
+    agentInstructionFiles: instructions.agentInstructionFiles,
+    projectContextFiles: instructions.projectContextFiles,
+    agentInstructions: instructions.combinedContext,
     fileCount: scan.files.length,
     packageJsonFiles: metadata.packageJsonFiles,
+    workspaceHints: metadata.workspaceHints,
   };
 }

@@ -5,9 +5,7 @@
   "private": true,
   "devDependencies": {
     "@types/bun": "latest",
-    "@types/node": "^26.0.1"
-  },
-  "peerDependencies": {
+    "@types/node": "^26.0.1",
     "typescript": "^6.0.3"
   },
   "scripts": {
