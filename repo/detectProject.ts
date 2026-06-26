@@ -16,6 +16,7 @@ type PackageJson = {
   scripts?: Record<string, string>;
   dependencies?: Record<string, string>;
   devDependencies?: Record<string, string>;
+  peerDependencies?: Record<string, string>;
 };
 
 function hasFile(scan: RepoScanResult, fileName: string) {
@@ -51,6 +52,7 @@ function addDependencyHints(
   const deps = {
     ...(pkg.dependencies ?? {}),
     ...(pkg.devDependencies ?? {}),
+    ...(pkg.peerDependencies ?? {}),
   };
 
   if (deps.next) hints.add("Next.js");
