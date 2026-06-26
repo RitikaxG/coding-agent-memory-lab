@@ -15,6 +15,16 @@ const PRIMARY_SCRIPT_NAMES = new Set([
   "format",
 ]);
 
+const PRIMARY_SCRIPT_ORDER = [
+  "dev",
+  "build",
+  "test",
+  "lint",
+  "typecheck",
+  "check-types",
+  "format",
+];
+
 function getArgValue(name: string, fallback?: string) {
   const index = process.argv.indexOf(name);
   if (index === -1) return fallback;
@@ -40,7 +50,16 @@ function printStringList(title: string, values: string[], limit = 20) {
 }
 
 function getPrimaryScripts(scripts: Record<string, string>) {
-  return Object.entries(scripts).filter(([name]) => PRIMARY_SCRIPT_NAMES.has(name));
+  const entries = Object.entries(scripts).filter(([name]) =>
+    PRIMARY_SCRIPT_NAMES.has(name),
+  );
+
+  return entries.sort(([a], [b]) => {
+    const aIndex = PRIMARY_SCRIPT_ORDER.indexOf(a);
+    const bIndex = PRIMARY_SCRIPT_ORDER.indexOf(b);
+
+    return aIndex - bIndex;
+  });
 }
 
 function printScripts(summary: RepoSummary) {
@@ -63,6 +82,37 @@ function printScripts(summary: RepoSummary) {
   }
 }
 
+function getCompactImportantFiles(summary: RepoSummary) {
+  return summary.importantFiles.filter((file) => {
+    const isRootFile = !file.includes("/");
+    const isPrismaSchema = file.endsWith("prisma/schema.prisma");
+    const isNextConfig = /(^|\/)next\.config\.(js|mjs|ts)$/.test(file);
+    const isViteConfig = /(^|\/)vite\.config\.(js|mjs|ts)$/.test(file);
+    const isAgentInstruction =
+      file.endsWith("AGENTS.md") ||
+      file.endsWith("CLAUDE.md") ||
+      file.endsWith(".github/copilot-instructions.md");
+
+    return (
+      isRootFile ||
+      isPrismaSchema ||
+      isNextConfig ||
+      isViteConfig ||
+      isAgentInstruction
+    );
+  });
+}
+
+function printPackageManifestSummary(summary: RepoSummary) {
+  const workspaceManifestCount = summary.packageJsonFiles.filter(
+    (file) => file !== "package.json",
+  ).length;
+
+  if (workspaceManifestCount > 0) {
+    console.log(`Workspace package manifests: ${workspaceManifestCount} detected`);
+  }
+}
+
 function printRepoSummary(summary: RepoSummary, task: string) {
   console.log("\nREPO SUMMARY\n");
 
@@ -71,12 +121,15 @@ function printRepoSummary(summary: RepoSummary, task: string) {
   console.log(`Repo shape: ${summary.repoShape}`);
   console.log(`File count: ${summary.fileCount}`);
   console.log(`Package manifests: ${summary.packageJsonFiles.length} detected`);
+  printPackageManifestSummary(summary);
 
   printStringList("Languages", summary.languageHints);
   printStringList("Frameworks", summary.frameworkHints);
   printStringList("Tooling", summary.toolingHints);
   printStringList("Workspace hints", summary.workspaceHints);
-  printStringList("Important files", summary.importantFiles, 25);
+
+  const compactImportantFiles = getCompactImportantFiles(summary);
+  printStringList("Important files", compactImportantFiles, 20);
 
   printScripts(summary);
 
