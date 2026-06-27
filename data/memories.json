@@ -1,0 +1,144 @@
+[
+  {
+    "id": "mem_user_pref_architecture_first",
+    "type": "user_preference",
+    "scope": {
+      "userId": "ritika"
+    },
+    "content": "User prefers architecture-first explanations, then file-by-file implementation guidance.",
+    "metadata": {
+      "source": "seed",
+      "importance": "medium",
+      "confidence": 0.9,
+      "createdAt": "2026-06-27T11:57:24.678Z"
+    }
+  },
+  {
+    "id": "mem_project_pref_bun",
+    "type": "project_preference",
+    "scope": {
+      "userId": "ritika",
+      "projectId": "claimflow_ai",
+      "repoId": "claimflow_ai"
+    },
+    "content": "ClaimFlow AI uses Bun as the package manager. Prefer Bun commands when suggesting scripts.",
+    "metadata": {
+      "source": "seed",
+      "importance": "high",
+      "confidence": 0.95,
+      "createdAt": "2026-06-27T11:57:24.678Z"
+    }
+  },
+  {
+    "id": "mem_claimflow_architecture",
+    "type": "repo_fact",
+    "scope": {
+      "userId": "ritika",
+      "projectId": "claimflow_ai",
+      "repoId": "claimflow_ai"
+    },
+    "content": "ClaimFlow AI is an applied AI insurance workflow with extraction, validation, policy RAG, memory, guarded agent actions, human review, evals, and observability.",
+    "metadata": {
+      "source": "seed",
+      "importance": "high",
+      "confidence": 0.95,
+      "createdAt": "2026-06-27T11:57:24.678Z"
+    }
+  },
+  {
+    "id": "mem_stale_claim_values_warning",
+    "type": "warning",
+    "scope": {
+      "userId": "ritika",
+      "projectId": "claimflow_ai",
+      "repoId": "claimflow_ai"
+    },
+    "content": "Memory should not blindly copy stale claim-specific values into a new claim. It should retrieve reusable workflow patterns and require current validation.",
+    "metadata": {
+      "source": "seed",
+      "importance": "high",
+      "confidence": 0.98,
+      "createdAt": "2026-06-27T11:57:24.678Z"
+    }
+  },
+  {
+    "id": "mem_missing_field_bug_pattern",
+    "type": "bug_fix_pattern",
+    "scope": {
+      "userId": "ritika",
+      "projectId": "claimflow_ai",
+      "repoId": "claimflow_ai"
+    },
+    "content": "Previous ClaimFlow memory bugs came from retrieving exact old field values instead of reusable missing-field resolution patterns.",
+    "metadata": {
+      "source": "seed",
+      "importance": "high",
+      "confidence": 0.9,
+      "createdAt": "2026-06-27T11:57:24.678Z"
+    }
+  },
+  {
+    "id": "mem_guarded_agent_action",
+    "type": "architecture_decision",
+    "scope": {
+      "userId": "ritika",
+      "projectId": "claimflow_ai",
+      "repoId": "claimflow_ai"
+    },
+    "content": "In ClaimFlow AI, the LLM can recommend a registered action, but backend guardrails must prevent unsafe approval, rejection, deletion, or bypassing review.",
+    "metadata": {
+      "source": "seed",
+      "importance": "high",
+      "confidence": 0.95,
+      "createdAt": "2026-06-27T11:57:24.678Z"
+    }
+  },
+  {
+    "id": "mem_1782561512996_15e202ebc0c42",
+    "type": "open_task",
+    "scope": {
+      "userId": "ritika",
+      "projectId": "claimflow_ai",
+      "repoId": "claimflow_ai"
+    },
+    "content": "Current task: Fix memory retrieval so stale claim values are not reused",
+    "metadata": {
+      "source": "conversation",
+      "importance": "medium",
+      "confidence": 0.8,
+      "createdAt": "2026-06-27T11:58:32.996Z"
+    }
+  },
+  {
+    "id": "mem_1782561937623_d139b322a18018",
+    "type": "open_task",
+    "scope": {
+      "userId": "ritika",
+      "projectId": "claimflow_ai",
+      "repoId": "claimflow_ai"
+    },
+    "content": "Current task: Fix memory retrieval so stale claim values are not reused",
+    "metadata": {
+      "source": "conversation",
+      "importance": "medium",
+      "confidence": 0.8,
+      "createdAt": "2026-06-27T12:05:37.623Z"
+    }
+  },
+  {
+    "id": "mem_1782562292358_58c1ada7b747a",
+    "type": "open_task",
+    "scope": {
+      "userId": "ritika",
+      "projectId": "claimflow_ai",
+      "repoId": "claimflow_ai"
+    },
+    "content": "Current task: Fix memory retrieval so stale claim values are not reused",
+    "metadata": {
+      "source": "conversation",
+      "importance": "medium",
+      "confidence": 0.8,
+      "createdAt": "2026-06-27T12:11:32.358Z"
+    }
+  }
+]

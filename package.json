@@ -11,6 +11,6 @@
   "scripts": {
     "dev":"bun run index.ts",
     "check":"tsc --noEmit",
-    "seed": "bun run src/memory/seedMemories.ts"
+    "seed": "bun run memory/seedMemories.ts"
   }
 }
