@@ -10,7 +10,7 @@
       "source": "seed",
       "importance": "medium",
       "confidence": 0.9,
-      "createdAt": "2026-06-27T11:57:24.678Z"
+      "createdAt": "2026-06-27T12:15:46.616Z"
     }
   },
   {
@@ -26,7 +26,7 @@
       "source": "seed",
       "importance": "high",
       "confidence": 0.95,
-      "createdAt": "2026-06-27T11:57:24.678Z"
+      "createdAt": "2026-06-27T12:15:46.616Z"
     }
   },
   {
@@ -42,7 +42,7 @@
       "source": "seed",
       "importance": "high",
       "confidence": 0.95,
-      "createdAt": "2026-06-27T11:57:24.678Z"
+      "createdAt": "2026-06-27T12:15:46.616Z"
     }
   },
   {
@@ -58,7 +58,7 @@
       "source": "seed",
       "importance": "high",
       "confidence": 0.98,
-      "createdAt": "2026-06-27T11:57:24.678Z"
+      "createdAt": "2026-06-27T12:15:46.616Z"
     }
   },
   {
@@ -74,7 +74,7 @@
       "source": "seed",
       "importance": "high",
       "confidence": 0.9,
-      "createdAt": "2026-06-27T11:57:24.678Z"
+      "createdAt": "2026-06-27T12:15:46.616Z"
     }
   },
   {
@@ -90,11 +90,11 @@
       "source": "seed",
       "importance": "high",
       "confidence": 0.95,
-      "createdAt": "2026-06-27T11:57:24.678Z"
+      "createdAt": "2026-06-27T12:15:46.616Z"
     }
   },
   {
-    "id": "mem_1782561512996_15e202ebc0c42",
+    "id": "mem_1782562546746_da0fc1b246fd2",
     "type": "open_task",
     "scope": {
       "userId": "ritika",
@@ -106,39 +106,7 @@
       "source": "conversation",
       "importance": "medium",
       "confidence": 0.8,
-      "createdAt": "2026-06-27T11:58:32.996Z"
-    }
-  },
-  {
-    "id": "mem_1782561937623_d139b322a18018",
-    "type": "open_task",
-    "scope": {
-      "userId": "ritika",
-      "projectId": "claimflow_ai",
-      "repoId": "claimflow_ai"
-    },
-    "content": "Current task: Fix memory retrieval so stale claim values are not reused",
-    "metadata": {
-      "source": "conversation",
-      "importance": "medium",
-      "confidence": 0.8,
-      "createdAt": "2026-06-27T12:05:37.623Z"
-    }
-  },
-  {
-    "id": "mem_1782562292358_58c1ada7b747a",
-    "type": "open_task",
-    "scope": {
-      "userId": "ritika",
-      "projectId": "claimflow_ai",
-      "repoId": "claimflow_ai"
-    },
-    "content": "Current task: Fix memory retrieval so stale claim values are not reused",
-    "metadata": {
-      "source": "conversation",
-      "importance": "medium",
-      "confidence": 0.8,
-      "createdAt": "2026-06-27T12:11:32.358Z"
+      "createdAt": "2026-06-27T12:15:46.746Z"
     }
   }
 ]
