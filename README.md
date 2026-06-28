@@ -362,13 +362,13 @@ with_memory
 
 ---
 
-## How this maps to MemCode
+## My inference about how this maps to MemCode
 
-MemCode should not be a wrapper around one memory provider.
+MemCode must be a wrapper around one memory provider.
 
-It should be a **provider-independent memory harness for coding agents**.
+It would be a **provider-independent memory harness for coding agents**.
 
-The architecture should look like:
+The architecture might look like:
 
 ```text
 MemCode DB
