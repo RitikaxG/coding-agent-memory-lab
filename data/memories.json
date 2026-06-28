@@ -10,7 +10,7 @@
       "source": "seed",
       "importance": "medium",
       "confidence": 0.9,
-      "createdAt": "2026-06-27T12:15:46.616Z"
+      "createdAt": "2026-06-28T07:18:12.651Z"
     }
   },
   {
@@ -26,7 +26,7 @@
       "source": "seed",
       "importance": "high",
       "confidence": 0.95,
-      "createdAt": "2026-06-27T12:15:46.616Z"
+      "createdAt": "2026-06-28T07:18:12.651Z"
     }
   },
   {
@@ -42,7 +42,7 @@
       "source": "seed",
       "importance": "high",
       "confidence": 0.95,
-      "createdAt": "2026-06-27T12:15:46.616Z"
+      "createdAt": "2026-06-28T07:18:12.651Z"
     }
   },
   {
@@ -58,7 +58,7 @@
       "source": "seed",
       "importance": "high",
       "confidence": 0.98,
-      "createdAt": "2026-06-27T12:15:46.616Z"
+      "createdAt": "2026-06-28T07:18:12.651Z"
     }
   },
   {
@@ -74,7 +74,7 @@
       "source": "seed",
       "importance": "high",
       "confidence": 0.9,
-      "createdAt": "2026-06-27T12:15:46.616Z"
+      "createdAt": "2026-06-28T07:18:12.651Z"
     }
   },
   {
@@ -90,23 +90,23 @@
       "source": "seed",
       "importance": "high",
       "confidence": 0.95,
-      "createdAt": "2026-06-27T12:15:46.616Z"
+      "createdAt": "2026-06-28T07:18:12.651Z"
     }
   },
   {
-    "id": "mem_1782562546746_da0fc1b246fd2",
-    "type": "open_task",
+    "id": "mem_1782631308269_81de73679f041",
+    "type": "bug_fix_pattern",
     "scope": {
       "userId": "ritika",
       "projectId": "claimflow_ai",
       "repoId": "claimflow_ai"
     },
-    "content": "Current task: Fix memory retrieval so stale claim values are not reused",
+    "content": "When fixing memory retrieval, reuse workflow patterns but require current evidence before applying claim-specific values.",
     "metadata": {
-      "source": "conversation",
-      "importance": "medium",
-      "confidence": 0.8,
-      "createdAt": "2026-06-27T12:15:46.746Z"
+      "source": "tool_event",
+      "importance": "high",
+      "confidence": 0.9,
+      "createdAt": "2026-06-28T07:21:48.269Z"
     }
   }
 ]

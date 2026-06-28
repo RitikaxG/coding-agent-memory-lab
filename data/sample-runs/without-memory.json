@@ -1,0 +1,106 @@
+{
+  "task": "Fix memory retrieval so stale claim values are not reused",
+  "contextPack": "# Agent Context Pack\n\n## User Task\nFix memory retrieval so stale claim values are not reused\n\n## Compact Repo Context\n- Repo path: /Users/ritikagupta/Desktop/Devops/claimflow-ai\n- Package manager: bun\n- Repo shape: workspace\n- Frameworks: Next.js, React\n- Tooling: Docker, Prisma, Tailwind CSS, Turborepo\n- File count: 959\n\n## Task-Relevant Files\n- README.md\n- apps/web/README.md\n- packages/agent/README.md\n- packages/agent/package.json\n- packages/agent/tsconfig.json\n- packages/ai/README.md\n- packages/db/README.md\n- packages/db/prisma/schema.prisma\n- packages/eslint-config/README.md\n- packages/evals/README.md\n- packages/evals/package.json\n- packages/evals/tsconfig.json\n\n## Task-Relevant Commands\n- build: turbo run build\n- lint: turbo run lint\n- check-types: turbo run check-types\n- memory:smoke:retrieval: bun --filter @repo/memory smoke:retrieval\n- agent:smoke:memory: bun --filter @repo/agent smoke:memory\n- memory:smoke:update: bun --filter @repo/memory smoke:update\n- memory:smoke:patterns: bun --filter @repo/memory smoke:patterns\n- eval:week5:memory: bun --filter @repo/evals eval:week5:memory\n- production:check: bun run db:generate && bun run check-types && bun run lint && bun run eval:week6:gateway && bun run build\n\n## Retrieved Memory\n- No relevant memories retrieved.\n\n## Memory Safety Decision\n- No specific stale-memory warning found.\n- Treat retrieved memory as guidance, not current repo truth.\n\n## Suggested First Actions\n1. Search the memory package for retrieval and ranking logic.\n2. Inspect validation boundaries for required claim fields.\n3. Check where agent memory is injected into the ClaimFlow workflow.\n4. Add or run a stale-memory safety test.\n5. Write back only a reusable bug-fix pattern, not claim-specific values.\n",
+  "run": {
+    "mode": "without_memory",
+    "task": "Fix memory retrieval so stale claim values are not reused",
+    "steps": [
+      {
+        "step": 1,
+        "tool": "search_code",
+        "reason": "Search broadly for memory-related code because no prior bug pattern is available.",
+        "input": {
+          "query": "memory retrieval"
+        },
+        "expectedObservation": "Relevant memory provider, retrieval, ranking, or validation files are found.",
+        "memoryInfluenced": false
+      },
+      {
+        "step": 2,
+        "tool": "read_file",
+        "reason": "Inspect the first likely memory implementation file.",
+        "input": {
+          "target": "first memory-related file"
+        },
+        "expectedObservation": "Current retrieval behavior and validation boundary are understood.",
+        "memoryInfluenced": false
+      },
+      {
+        "step": 3,
+        "tool": "suggest_edit",
+        "reason": "Suggest a generic retrieval improvement.",
+        "input": {
+          "change": "improve memory retrieval logic"
+        },
+        "expectedObservation": "Patch direction is clear, limited, and does not bypass validation.",
+        "memoryInfluenced": false
+      },
+      {
+        "step": 4,
+        "tool": "run_command",
+        "reason": "Validate the proposed behavior with typecheck or a memory smoke/eval command.",
+        "input": {
+          "command": "bun run check"
+        },
+        "expectedObservation": "Typecheck or smoke test passes.",
+        "memoryInfluenced": false
+      },
+      {
+        "step": 5,
+        "tool": "write_memory",
+        "reason": "Write back a generic task note after validation.",
+        "input": {
+          "memoryType": "open_task",
+          "content": "Investigated memory retrieval task."
+        },
+        "expectedObservation": "A safe reusable memory is written back.",
+        "memoryInfluenced": false
+      }
+    ],
+    "validationSummary": {
+      "shouldRun": [
+        "bun run check"
+      ],
+      "safetyChecks": [
+        "No memory-specific safety warning included."
+      ],
+      "expectedOutcome": "Agent searches more broadly and may rediscover known risks manually."
+    }
+  },
+  "validation": {
+    "passed": false,
+    "checks": [
+      {
+        "name": "search_before_edit",
+        "passed": true,
+        "reason": "Agent should search relevant code before proposing edits."
+      },
+      {
+        "name": "read_before_edit",
+        "passed": true,
+        "reason": "Agent should inspect code before proposing changes."
+      },
+      {
+        "name": "command_validation_present",
+        "passed": true,
+        "reason": "Agent run should include validation through typecheck, test, or smoke eval."
+      },
+      {
+        "name": "write_memory_after_validation",
+        "passed": true,
+        "reason": "Memory write-back should happen only after validation."
+      },
+      {
+        "name": "no_claim_specific_value_reuse",
+        "passed": true,
+        "reason": "Agent must not copy stale claim-specific values from memory into a new claim."
+      },
+      {
+        "name": "stale_memory_safety_present",
+        "passed": false,
+        "reason": "Stale-memory tasks must include explicit safety framing before memory can influence the run."
+      }
+    ],
+    "summary": "Agent run failed validation. Memory write-back should be blocked."
+  }
+}
