@@ -1,529 +1,412 @@
 # Coding Agent Memory Lab
 
-A small proof-of-understanding for how memory can be added to a coding-agent runtime.
+A 3-day proof of work for understanding how **memory abstraction can be added to a coding-agent runtime**.
 
-The goal is not to build a full autonomous coding agent. The goal is to prove the core architecture behind a memory-first coding agent:
+This repo explores the core MemCode idea:
 
-```txt
-current repo context
-+ scoped persisted memory
-+ active memory provider
-= compact task context before the agent acts
-```
-
-This project was built as a 3-day proof-of-work for understanding how a product like MemCode can combine repo scanning, provider-independent memory, context assembly, and memory write-back.
+> A coding agent should not only understand the current repo.  
+> It should also recall what was learned before, use that memory safely, and allow developers to switch memory providers without changing the agent workflow.
 
 ---
 
-## Why this exists
+## Core idea
 
-Most coding agents can read files and generate code, but they often lose continuity across sessions.
+Most coding agents today let users choose the **model**.
 
-A developer may have to repeat:
+This project explores the next abstraction:
 
-```txt
-- Use Bun.
-- This repo is a workspace.
-- Do not reuse stale claim-specific values.
-- Memory should store workflow patterns, not old field values.
-- The agent can recommend actions, but guardrails must enforce safety.
+```text
+same coding agent
+same repo
+same task
+different memory provider
+different recall behavior
 ```
 
-A memory-first coding agent should remember durable facts and retrieve the right ones for the current repo/task.
+A memory provider should not be treated as only a database.
 
-This lab demonstrates that idea with a small local implementation.
+A database answers:
+
+```text
+What was stored?
+```
+
+A memory provider answers:
+
+```text
+What should be recalled for this coding task right now?
+```
+
+That is why this repo models memory providers as **recall engines**.
 
 ---
 
-## Core pipeline
+## Memory abstraction for a coding agent
 
-```txt
-User task
-  ↓
-Repo scan
-  ↓
-Repo summary
-  ↓
-Active memory provider resolution
-  ↓
-Scoped memory recall
-  ↓
-Context assembly
-  ↓
-Memory write-back
-  ↓
-Provider sync status
-```
+The memory layer is designed so the coding-agent harness does not care which memory backend is active.
 
-The current proof focuses on Day 1 and Day 2:
-
-```txt
-Day 1: repo context foundation
-Day 2: memory provider abstraction + local recall engine
-Day 3: simulated agent loop + memory evaluation
-```
-
----
-
-## What is implemented
-
-```txt
-repo/
-  scanRepo.ts
-  detectProject.ts
-  parseAgentInstructions.ts
-  buildRepoSummary.ts
-
-memory/
-  memoryTypes.ts
-  MemoryProvider.ts
-  LocalMemoryProvider.ts
-  providerBinding.ts
-  providerSync.ts
-  seedMemories.ts
-
-context/
-  buildContextPack.ts
-  estimateContextSize.ts
-
-index.ts
-```
-
-Current features:
-
-- repo scanner
-- project metadata detector
-- package manager detection
-- workspace/framework/tooling detection
-- README / project context parser
-- canonical `MemoryEvent` model
-- `MemoryProvider` interface
-- local JSON-backed memory provider
-- scoped memory search
-- recall scoring by keyword, scope, type, importance, and confidence
-- provider binding model
-- provider sync / lazy backfill model
-- ClaimFlow AI demo memories
-- concise CLI memory pipeline output
-- memory write-back after a run
-
----
-
-## Day 1: Repo context foundation
-
-A coding agent first needs to understand the current repository.
-
-The repo layer scans a target repo and extracts:
-
-```txt
-- package manager
-- repo shape
-- languages
-- frameworks
-- tooling
-- workspace hints
-- important files
-- package manifests
-- available scripts
-- agent/project context files
-```
-
-Example output for ClaimFlow AI:
-
-```txt
-repo: claimflow_ai
-package manager: bun
-shape: workspace
-frameworks: Next.js, React
-relevant packages: memory, agent, shared/validation, evals
-```
-
-This gives the agent current repo context before memory is retrieved.
-
----
-
-## Day 2: Memory layer
-
-Day 2 adds a provider-independent memory layer.
-
-The key idea:
-
-```txt
-MemCode owns canonical memory events.
-Memory providers act as recall engines.
-```
-
-A memory provider is not only storage. It decides which memories are useful for the current task.
-
----
-
-## Memory architecture
-
-```txt
+```text
 MemoryEvent
-  = canonical portable memory unit
+  = canonical memory unit owned by MemCode
 
 MemoryProvider
-  = interface every provider must implement
+  = interface every memory backend implements
 
 LocalMemoryProvider
-  = default local recall engine
+  = default JSON-backed recall engine
 
 ProviderBinding
-  = chooses active provider for user/project/repo
+  = decides active provider for user/project/repo
 
 ProviderSyncStatus
-  = tracks where memory has been synced
-
-index.ts
-  = wires repo context + provider + recall + write-back
+  = tracks which providers have synced memory
 ```
+
+![Memory Pipeline](./images/memory-pipeline.png)
+
+This lets the agent use:
+
+```text
+default / local-json today
+supermemory later
+mem0 later
+hermes later
+```
+
+without rewriting the coding-agent loop.
+
+Detailed architecture notes:
+
+- [Memory layer engineering challenges](./docs/memory-layer-engineering-challenges.md)
+- [When to switch memory providers](./docs/when-switch-memory-providers.md)
 
 ---
 
-## `memoryTypes.ts`
+## Why provider switching matters
 
-Defines the canonical memory shape.
+A developer may want to switch memory providers because each provider can recall differently.
 
-Important types:
+For the same task:
 
-```txt
-ProviderName
-MemoryEventType
-MemoryScope
-MemoryEvent
-MemorySearchInput
-MemoryResult
-MemoryWriteInput
+```text
+Fix memory retrieval so stale claim values are not reused
 ```
 
-Example memory:
+different providers may behave differently:
 
-```txt
-type: warning
-scope: ritika / claimflow_ai / claimflow_ai
-content: Memory should not blindly copy stale claim-specific values into a new claim.
-metadata: high importance, high confidence, seed source
-```
-
-This makes memory portable across providers.
-
----
-
-## `MemoryProvider.ts`
-
-Defines the contract every memory provider must implement:
-
-```txt
-save()
-search()
-list()
-delete?()
-```
-
-This lets the same coding-agent harness use different backends later:
-
-```txt
-default local provider
+```text
 Supermemory
+→ broad project/document context
+
 Mem0
-Hermes
+→ durable learned patterns across sessions
+
+Hermes-style/default
+→ local curated memory and coding-agent runtime rules
 ```
 
-The agent workflow does not need to change when the provider changes.
+The important architecture decision is:
+
+```text
+Provider switching should not move the whole product state.
+It should only switch the recall behavior.
+```
+
+MemCode keeps canonical memory events. Providers act as adapters/recall engines.
 
 ---
 
-## `LocalMemoryProvider.ts`
+## Coding-agent mini pipeline
 
-Implements the default local memory provider using:
+This repo does not build a full autonomous coding agent.
 
-```txt
-data/memories.json
+It builds the minimum pipeline needed to prove how memory fits inside a coding-agent runtime:
+
+![Coding Agent Mini Pipeline](./images/coding-agent-mini-pipeline.png)
+
+The pipeline is:
+
+```text
+Build repo context
+  ↓
+Retrieve memory
+  ↓
+Build context pack
+  ↓
+Simulate agent loop
+  ↓
+Validate agent run
+  ↓
+Safe memory write-back
+  ↓
+Evaluate with vs without memory
 ```
 
-It supports:
+### 1. Repo context
 
-```txt
-list  → read all memories
-save  → write a new canonical MemoryEvent
-search → retrieve relevant scoped memories
+The agent first needs to understand what exists now.
+
+The repo context includes:
+
+```text
+package manager
+repo shape
+framework hints
+important files
+scripts
+agent instructions
 ```
 
-The search method acts as the recall engine.
+Proof:
 
-It scores memories using:
+![Repo Summary](./images/repo-summary.png)
 
-```txt
+---
+
+### 2. Memory layer and recall engine
+
+The active memory provider searches scoped memory for the current task.
+
+Scope keeps retrieval grounded:
+
+```text
+user / project / repo
+```
+
+The local provider scores memories using:
+
+```text
 keyword match
-+ scope match
-+ type boost
-+ importance boost
-+ confidence
+scope match
+type boost
+importance boost
+confidence
 ```
 
-This means a task like:
+This turns memory into a recall engine instead of simple storage.
 
-```txt
-Fix memory retrieval so stale claim values are not reused
-```
+Proof:
 
-retrieves memories about:
+![Memory Pipeline with Recall Engine 1](./images/memory-pipeline-with-recall-engine-1.png)
 
-```txt
-- stale claim-specific values
-- reusable workflow patterns
-- previous missing-field memory bugs
-- ClaimFlow guardrails
-```
-
-instead of returning random global memory.
+![Memory Pipeline with Recall Engine 2](./images/memory-pipeline-with-recall-engine-2.png)
 
 ---
 
-## `providerBinding.ts`
+### 3. Context pack
 
-Defines which provider is active for the current user/project/repo.
+The context pack combines:
 
-In the current proof:
-
-```txt
-provider: default
-namespace: local-json
+```text
+current task
+repo summary
+retrieved memories
+task-relevant commands
+memory safety decisions
+suggested first actions
 ```
 
-Later, this could become:
-
-```txt
-provider: mem0
-provider: supermemory
-provider: hermes
-```
-
-This models provider switching without changing the coding-agent pipeline.
+For a real coding agent, this is the compact working context sent before the agent enters the tool loop.
 
 ---
 
-## `providerSync.ts`
+### 4. Simulated agent loop
 
-Models memory sync status across providers.
+The agent does not act freely.
 
-In the Day 2 proof:
+It acts through structured tool steps:
 
-```txt
-default: synced
-supermemory: skipped
-mem0: skipped
-hermes: skipped
+```text
+search_code
+read_file
+suggest_edit
+run_command
+write_memory
 ```
 
-This proves the system does not blindly write every memory to every provider.
-
-The intended architecture is:
-
-```txt
-active provider = synced now
-future providers = lazy backfill later
-```
-
-This avoids duplicate storage, unnecessary cost, high latency, and provider drift.
+This models the Agent-Computer Interface idea: coding agents need structured commands and feedback, not raw unrestricted actions.
 
 ---
 
-## `seedMemories.ts`
+### 5. Validation before write-back
 
-Creates the initial demo memories for the local provider.
+Memory should not be blindly trusted.
 
-It writes seeded memories into:
+Before memory write-back is allowed, the proposed agent run is validated.
 
-```txt
-data/memories.json
+Validation checks:
+
+```text
+search before edit
+read before edit
+validation command included
+write-back after validation
+no stale claim-specific value reuse
+stale-memory safety framing present
 ```
 
-Seeded examples include:
+If validation fails:
 
-```txt
-- User prefers architecture-first explanations.
-- ClaimFlow AI uses Bun.
-- ClaimFlow AI has extraction, validation, RAG, memory, agent actions, human review, evals, and observability.
-- Memory should not copy stale claim-specific values.
-- Previous memory bugs came from retrieving exact old values.
-- Guardrails prevent unsafe approval/rejection/deletion.
+```text
+memory write-back is blocked
+```
+
+If validation passes:
+
+```text
+only reusable learning is written back
+```
+
+Example reusable memory:
+
+```text
+When fixing memory retrieval, reuse workflow patterns but require current evidence before applying claim-specific values.
 ```
 
 ---
 
-## Recall engine example
+## With-memory vs without-memory eval
 
-Run:
+The same task is evaluated in two modes:
 
-```bash
-bun run seed
-bun run dev --repo ../claimflow-ai --task "Fix memory retrieval so stale claim values are not reused"
+```text
+without_memory = repo context only
+with_memory    = repo context + retrieved scoped memory
 ```
 
-The task becomes the search query:
+### Without memory
 
-```txt
-Fix memory retrieval so stale claim values are not reused
+The agent has:
+
+```text
+current task
+repo summary
+important files
+generic coding steps
 ```
 
-The inferred scope becomes:
-
-```txt
-user: ritika
-project: claimflow_ai
-repo: claimflow_ai
-```
-
-The local recall engine searches memories using that query and scope.
-
-Top recalled memories:
-
-```txt
-1. [warning]
-   Memory should not blindly copy stale claim-specific values into a new claim.
-
-2. [bug_fix_pattern]
-   Previous ClaimFlow memory bugs came from retrieving exact old field values instead of reusable missing-field resolution patterns.
-
-3. [repo_fact]
-   ClaimFlow AI is an applied AI insurance workflow with extraction, validation, policy RAG, memory, guarded agent actions, human review, evals, and observability.
-```
-
-The agent now has enough context to understand:
-
-```txt
-- this is a ClaimFlow memory bug
-- stale values should not be copied
-- reusable workflow patterns are safe
-- current validation must still verify claim facts
-```
-
----
-
-## Example CLI output
-
-```txt
-MEMCODE DAY 2 MEMORY PIPELINE
-=============================
-
-Task:
-Fix memory retrieval so stale claim values are not reused
-
-1. Repo context loaded
-- repo: claimflow_ai
-- package manager: bun
-- shape: workspace
-- frameworks: Next.js, React
-- relevant packages: memory, agent, shared/validation, evals
-
-2. Active memory provider resolved
-- provider: default
-- namespace: local-json
-- future providers: supermemory, mem0, hermes
-
-3. Scoped memory recalled
-- user: ritika
-- project: claimflow_ai
-- repo: claimflow_ai
-
-Top recalled memories:
-1. [warning] Memory should not blindly copy stale claim-specific values into a new claim.
-2. [bug_fix_pattern] Previous ClaimFlow memory bugs came from retrieving exact old field values instead of reusable missing-field resolution patterns.
-3. [repo_fact] ClaimFlow AI is an applied AI insurance workflow with extraction, validation, policy RAG, memory, guarded agent actions, human review, evals, and observability.
-
-4. Context pack assembled
-The agent now has:
-- current repo context
-- scoped ClaimFlow memories
-- stale-memory safety rule
-- next coding actions
-
-Suggested first actions:
-- inspect memory retrieval
-- inspect validation boundary
-- run memory smoke/eval command
-- write back only reusable workflow pattern
-
-5. Memory write-back
-- saved type: open_task
-- scope: ritika / claimflow_ai / claimflow_ai
-
-Provider sync:
-- default: synced
-- supermemory: skipped for lazy backfill
-- mem0: skipped for lazy backfill
-- hermes: skipped for lazy backfill
+But it lacks the stale-memory safety lesson.
 
 Result:
-Day 2 proves canonical MemoryEvent + MemoryProvider + scoped recall + context assembly + write-back.
+
+```text
+shorter context
+no stale-memory safety framing
+validation fails
+memory write-back blocked
+```
+
+### With memory
+
+The agent also receives retrieved memories such as:
+
+```text
+do not reuse stale claim-specific values
+previous memory bugs came from exact old value reuse
+memory should suggest reusable workflow patterns only
+current validation must own current truth
+```
+
+Result:
+
+```text
+retrieves relevant memories
+includes safety framing
+validation passes
+safe reusable memory is written back
+```
+
+Proof:
+
+![With vs Without Memory](./images/with-vs-without-memory.png)
+
+The point is not that memory always reduces tokens.
+
+The point is:
+
+```text
+without memory = shorter but unsafe
+with memory    = more context but passes validation
 ```
 
 ---
 
-## Why this proves the memory architecture
+## What was built and tested
 
-This project does not simply print all stored memories.
+This repo proves the following system behavior:
 
-It does:
-
-```txt
-current task
-+ current user/project/repo scope
-+ recall scoring
-= useful memories for this run
+```text
+1. Build compact repo context
+2. Resolve active memory provider
+3. Retrieve scoped memories for the current task
+4. Score and rank memories
+5. Assemble context pack
+6. Simulate agent tool loop
+7. Validate the proposed run
+8. Write memory only if validation passes
+9. Track provider sync status
+10. Compare with-memory vs without-memory behavior
 ```
 
-For ClaimFlow AI, the recall engine correctly prioritizes:
+Final tested result:
 
-```txt
-warning
-bug_fix_pattern
-repo_fact
-```
+```text
+without_memory
+→ validation failed
+→ memory write-back blocked
 
-over unrelated memories.
-
-That proves:
-
-```txt
-MemCode-owned memory events
-+ swappable memory provider
-+ scoped recall
-+ prompt/context assembly
-+ write-back
+with_memory
+→ validation passed
+→ reusable bug-fix memory written back
 ```
 
 ---
 
-## Provider fit
+## How this maps to MemCode
 
-This proof uses the default local provider.
+MemCode should not be a wrapper around one memory provider.
 
-Future provider roles:
+It should be a **provider-independent memory harness for coding agents**.
 
-```txt
-Supermemory
-= broad project/document context and RAG-style retrieval
+The architecture should look like:
 
-Mem0
-= durable user/repo/session memory and bug-fix patterns
+```text
+MemCode DB
+  = canonical source of truth
 
-Hermes-style memory
-= local curated runtime memory and provider orchestration pattern
+MemoryEvent
+  = portable memory unit
+
+MemoryProvider
+  = adapter interface
+
+ProviderBinding
+  = active memory selection
+
+ProviderSyncStatus
+  = lazy/backfill control
+
+PromptAssembler
+  = repo summary + instructions + retrieved memory
+
+CodingAgentHarness
+  = repo context + tools + validation + memory write-back
 ```
 
-The important architecture decision:
+This avoids:
 
-```txt
-Provider switching should change recall behavior,
-not the whole coding-agent harness.
+```text
+provider lock-in
+duplicate writes
+high latency
+high cost
+provider drift
+unsafe stale memory reuse
 ```
 
 ---
 
-## Commands
+## Run locally
 
 Install dependencies:
 
@@ -537,13 +420,23 @@ Seed demo memories:
 bun run seed
 ```
 
-Run the Day 2 pipeline:
+Run the main memory pipeline:
 
 ```bash
-bun run dev --repo ../claimflow-ai --task "Fix memory retrieval so stale claim values are not reused"
+bun run dev \
+  --repo ../claimflow_ai \
+  --task "Fix memory retrieval so stale claim values are not reused"
 ```
 
-Type-check:
+Run the with-memory vs without-memory eval:
+
+```bash
+bun run eval \
+  --repo ../claimflow_ai \
+  --task "Fix memory retrieval so stale claim values are not reused"
+```
+
+Typecheck:
 
 ```bash
 bun run check
@@ -551,64 +444,18 @@ bun run check
 
 ---
 
-## Current status
+## Final takeaway
 
-```txt
-Day 1 complete:
-Repo scan + repo summary layer.
+This repo proves a minimal memory-aware coding-agent pipeline:
 
-Day 2 complete:
-MemoryProvider abstraction + LocalMemoryProvider + scoped recall + provider binding + provider sync + memory write-back.
-
-Day 3 planned:
-Simulated agent tool loop + with-memory vs without-memory comparison.
+```text
+Repo context tells the agent what exists now.
+Memory tells the agent what was learned before.
+Validation decides whether memory was used safely.
+Provider abstraction lets the developer switch recall engines without changing the agent workflow.
 ```
 
----
+The core product insight:
 
-## Day 3 plan
-
-Day 3 will add a simulated coding-agent loop.
-
-Planned flow:
-
-```txt
-context pack
-  ↓
-simulated tool plan
-  ↓
-validation summary
-  ↓
-memory write-back
-  ↓
-with-memory vs without-memory comparison
-```
-
-Planned tool steps:
-
-```txt
-search_code
-read_file
-suggest_edit
-run_command
-write_memory
-```
-
-The goal is not full autonomous editing. The goal is to show how retrieved memory changes the agent’s next actions.
-
----
-
-## Final architecture sentence
-
-A memory-first coding agent has two context layers:
-
-```txt
-current repo context
-+ durable learned context
-```
-
-The repo scanner tells the agent what exists now.
-
-The memory layer tells the agent what was learned before.
-
-The context pack combines both before the agent enters the tool loop.
+> Memory is not just storage.  
+> For coding agents, memory is scoped recall, safe context injection, validated write-back, and provider-independent continuity.
